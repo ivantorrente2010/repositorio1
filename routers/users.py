@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from models import User
+from models import User, Client, Trainer
 from schemas import UserCreate, UserResponse
 from hashing import Hash
 
@@ -27,6 +27,23 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.add(nuevo_usuario)
     db.commit()
     db.refresh(nuevo_usuario)
+
+    # Insertar en clients o trainers según el tipo_usuario
+    if user.tipo_usuario == "cliente":
+        nuevo_cliente = Client(
+            id=nuevo_usuario.id,
+            objetivos="Definir objetivos",  # Personalizable
+            entrenador_id=None  # Esto puede ser asignado después
+        )
+        db.add(nuevo_cliente)
+    elif user.tipo_usuario == "entrenador":
+        nuevo_entrenador = Trainer(
+            id=nuevo_usuario.id,
+            especialidad="General"  # Personalizable
+        )
+        db.add(nuevo_entrenador)
+
+    db.commit()
     return nuevo_usuario
 
 # Leer todos los usuarios
@@ -53,6 +70,21 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    # Insertar en clients o trainers según el tipo_usuario
+    if user.tipo_usuario == "cliente":
+        nuevo_cliente = Client(
+            id=new_user.id,
+            objetivos="Definir objetivos",  # Personalizable
+            entrenador_id=None  # Esto puede ser asignado después
+        )
+        db.add(nuevo_cliente)
+    elif user.tipo_usuario == "entrenador":
+        nuevo_entrenador = Trainer(
+            id=new_user.id,
+            especialidad="General"  # Personalizable
+        )
+        db.add(nuevo_entrenador)
+
+    db.commit()
     return {"message": "Usuario registrado exitosamente"}
-
-
