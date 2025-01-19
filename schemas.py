@@ -14,15 +14,17 @@ class UserResponse(UserBase):
 
     class Config:
         orm_mode = True
+
+# Esquema del token con el rol incluido
 class Token(BaseModel):
     access_token: str
     token_type: str
+    role: str  # Nuevo campo para el rol del usuario
 
 class TokenData(BaseModel):
     email: str | None = None
 
-    # Esquemas para rutinas
-
+# Esquemas para rutinas
 class RoutineBase(BaseModel):
     nombre: str
     descripcion: str
@@ -42,8 +44,7 @@ class RoutineResponse(RoutineBase):
     class Config:
         from_attributes = True
 
-    # Esquemas para Planes de Nutrición
-
+# Esquemas para planes de nutrición
 class NutritionPlanBase(BaseModel):
     descripcion: str
     cliente_id: int
@@ -61,8 +62,7 @@ class NutritionPlanResponse(NutritionPlanBase):
     class Config:
         from_attributes = True
 
-    # Esquemas para Métricas
-
+# Esquemas para métricas
 class MetricBase(BaseModel):
     peso: float
     grasa_corporal: float | None = None
@@ -79,8 +79,7 @@ class MetricResponse(MetricBase):
     class Config:
         from_attributes = True
 
-    # Esquemas para el Login
-
+# Esquema para el login
 class LoginRequest(BaseModel):
     email: str
     password: str
