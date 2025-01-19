@@ -22,16 +22,20 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         setRole(null);
         localStorage.removeItem("role");
-        localStorage.removeItem("token");
+        localStorage.removeItem("token"); // Elimina el token de autenticación
     };
 
-    // Actualizar el estado si cambia el localStorage (opcional)
+    // Sincronizar el estado con los cambios en localStorage
     useEffect(() => {
         const handleStorageChange = () => {
-            setRole(localStorage.getItem("role"));
+            const storedRole = localStorage.getItem("role");
+            setRole(storedRole);
         };
         window.addEventListener("storage", handleStorageChange);
-        return () => window.removeEventListener("storage", handleStorageChange);
+
+        return () => {
+            window.removeEventListener("storage", handleStorageChange);
+        };
     }, []);
 
     return (
