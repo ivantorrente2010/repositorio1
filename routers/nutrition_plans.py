@@ -40,14 +40,21 @@ def create_plan(plan: NutritionPlanCreate, db: Session = Depends(get_db), curren
 
 
 # Obtener el plan de nutrición asignado a un cliente
+
 @router.get("/client/{cliente_id}", response_model=list[NutritionPlanResponse])
-def get_client_plan(cliente_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    if current_user["tipo_usuario"] == "cliente" and current_user["id"] != cliente_id:
+def get_client_plan(
+    cliente_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # Verificar que un cliente no acceda a datos de otro cliente
+    if current_user.tipo_usuario == "cliente" and current_user.id != cliente_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tienes permiso para ver este plan de nutrición."
+            detail="No tienes permiso para ver los planes de otro cliente."
         )
 
+    # Obtener los planes asignados al cliente
     planes = db.query(NutritionPlan).filter(NutritionPlan.cliente_id == cliente_id).all()
     if not planes:
         raise HTTPException(
@@ -56,3 +63,4 @@ def get_client_plan(cliente_id: int, db: Session = Depends(get_db), current_user
         )
 
     return planes
+
