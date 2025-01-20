@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext"; // Importamos el contexto de autenticación
 
+
 const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -16,21 +17,27 @@ const Login = () => {
                 email,
                 password,
             });
-
-            const { access_token, role } = response.data; // Extraemos el token y el rol del response
-
-            // Guardar el token y el rol en localStorage
-            localStorage.setItem("token", access_token);
-            localStorage.setItem("role", role);
-
-            console.log("Token guardado en localStorage:", access_token);
-            console.log("Role guardado en localStorage:", role);
-
+    
+            // Log para depurar el rol recibido
+            console.log("Role recibido desde backend:", response.data.role);
+    
             // Actualizar el contexto con el rol del usuario
-            login(role);
-
+            login(response.data.role); // Actualiza el estado global del rol
+    
+            // Guardar token y rol en localStorage
+            localStorage.setItem("token", response.data.access_token);
+            localStorage.setItem("role", response.data.role);
+    
+            // Si el usuario es cliente, guarda también su cliente_id
+            if (response.data.role === "cliente") {
+                // Decodificar el token para obtener el cliente_id
+                const tokenData = JSON.parse(atob(response.data.access_token.split(".")[1]));
+                console.log("Token Data Decoded:", tokenData); // Verifica los datos decodificados
+                localStorage.setItem("cliente_id", tokenData.sub); // Guarda el cliente_id
+            }
+    
             alert("¡Inicio de sesión exitoso!");
-
+    
             // Redirigir al dashboard
             navigate("/dashboard");
         } catch (error) {
@@ -40,6 +47,8 @@ const Login = () => {
             alert(`Error al iniciar sesión: ${errorMessage}`);
         }
     };
+    
+    
 
     return (
         <div>

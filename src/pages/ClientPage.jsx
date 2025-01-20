@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../services/api";
-import Header from "../components/Header"; // Importa el Header
+import Header from "../components/Header";
 
 const ClientPage = () => {
   const [routines, setRoutines] = useState([]);
@@ -12,29 +12,38 @@ const ClientPage = () => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
+        const clienteId = localStorage.getItem("cliente_id");
         const headers = { Authorization: `Bearer ${token}` };
-
-        // Obtener rutinas del cliente
-        const routinesResponse = await api.get("/routines/me", { headers });
-        setRoutines(routinesResponse.data);
-
+  
+        console.log("Token enviado:", token);
+        console.log("Cliente ID:", clienteId);
+  
+        if (!clienteId) {
+          console.error("No se encontró cliente_id en localStorage");
+          return;
+        }
+  
         // Obtener planes de nutrición
-        const nutritionPlansResponse = await api.get("/nutrition-plans/me", { headers });
-        setNutritionPlans(nutritionPlansResponse.data);
-
-        // Obtener métricas
-        const metricsResponse = await api.get("/metrics/me", { headers });
-        setMetrics(metricsResponse.data);
-
+        try {
+          const nutritionPlansResponse = await api.get(`/nutrition-plans/client/${clienteId}`, { headers });
+          console.log("Respuesta del backend para planes de nutrición:", nutritionPlansResponse.data);
+          setNutritionPlans(nutritionPlansResponse.data);
+        } catch (error) {
+          console.error("Error en la solicitud de planes de nutrición:", error.response?.data || error);
+        }
+  
         setLoading(false);
       } catch (error) {
         console.error("Error al cargar los datos del cliente:", error);
         setLoading(false);
       }
     };
-
+  
     fetchData();
   }, []);
+  
+
+
 
   if (loading) {
     return <p>Cargando datos...</p>;
@@ -42,11 +51,9 @@ const ClientPage = () => {
 
   return (
     <div>
-      {/* Header con el botón de Logout */}
       <Header />
       <h1>Panel del Cliente</h1>
 
-      {/* Sección de rutinas */}
       <section>
         <h2>Mis Rutinas</h2>
         {routines.length > 0 ? (
@@ -63,7 +70,6 @@ const ClientPage = () => {
         )}
       </section>
 
-      {/* Sección de planes de nutrición */}
       <section>
         <h2>Mis Planes de Nutrición</h2>
         {nutritionPlans.length > 0 ? (
@@ -79,7 +85,6 @@ const ClientPage = () => {
         )}
       </section>
 
-      {/* Sección de métricas */}
       <section>
         <h2>Mis Métricas</h2>
         {metrics.length > 0 ? (
@@ -110,4 +115,3 @@ const ClientPage = () => {
 };
 
 export default ClientPage;
-
