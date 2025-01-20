@@ -41,7 +41,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido o expirado",
         )
-    user = db.query(User).filter(User.email == payload["sub"]).first()
+    user = db.query(User).filter(User.id == int(payload["sub"])).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -56,7 +56,6 @@ router = APIRouter(
 )
 
 # Endpoint de inicio de sesión
-
 @router.post("/login", response_model=Token)
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     try:
@@ -77,14 +76,17 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
                 detail="Credenciales inválidas",
             )
 
-        # Crear el token incluyendo el tipo_usuario
-        access_token = create_access_token(data={"sub": user.email, "role": user.tipo_usuario})
+        # Crear el token incluyendo el tipo_usuario y el ID
+        access_token = create_access_token(data={
+            "sub": str(user.id),  # ID del usuario (cliente_id)
+            "email": user.email,
+            "role": user.tipo_usuario
+        })
 
-        # Incluir el tipo_usuario en la respuesta
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "role": user.tipo_usuario  # Este es el campo que indica el rol
+            "role": user.tipo_usuario
         }
     except Exception as e:
         print(f"Error en login: {e}")
