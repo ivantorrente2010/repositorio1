@@ -17,15 +17,21 @@ const Login = () => {
                 password,
             });
 
-            // Log para depurar el rol recibido
-            console.log("Role recibido desde backend:", response.data.role);
+            const { access_token, role } = response.data; // Extraemos el token y el rol del response
+
+            // Guardar el token y el rol en localStorage
+            localStorage.setItem("token", access_token);
+            localStorage.setItem("role", role);
+
+            console.log("Token guardado en localStorage:", access_token);
+            console.log("Role guardado en localStorage:", role);
 
             // Actualizar el contexto con el rol del usuario
-            login(response.data.role); // Actualiza el estado global del rol
+            login(role);
 
             alert("¡Inicio de sesión exitoso!");
 
-            // Redirigir al dashboard, el rol se manejará dinámicamente en App.jsx
+            // Redirigir al dashboard
             navigate("/dashboard");
         } catch (error) {
             console.error("Error completo:", error);
