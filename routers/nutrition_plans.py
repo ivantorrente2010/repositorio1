@@ -35,7 +35,16 @@ def create_plan(plan: NutritionPlanCreate, db: Session = Depends(get_db), curren
     db.add(nuevo_plan)
     db.commit()
     db.refresh(nuevo_plan)
-    return nuevo_plan
+
+    print("Datos del plan creado:", nuevo_plan)
+
+    # Retorna un diccionario que coincida con el esquema
+    return {
+        "id": nuevo_plan.id,
+        "descripcion": nuevo_plan.descripcion,
+        "cliente_id": nuevo_plan.cliente_id,
+        "entrenador_id": nuevo_plan.entrenador_id
+    }
 
 
 
