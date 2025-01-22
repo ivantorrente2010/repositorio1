@@ -39,6 +39,7 @@ const TrainerPage = () => {
       console.log("Token enviado:", token); // Verificar el token almacenado en localStorage
   
       if (!token) {
+        console.error("Token no encontrado en localStorage.");
         setMessage("No se encontró un token. Por favor, inicia sesión.");
         return;
       }
@@ -66,11 +67,16 @@ const TrainerPage = () => {
       setSelectedClient("");
     } catch (error) {
       console.error("Error al asignar el plan de nutrición:", error);
-      if (error.response && error.response.status === 401) {
-        setMessage("No autorizado. Verifica el token.");
-      } else {
-        setMessage("Hubo un error al asignar el plan de nutrición.");
-      }
+    if (error.response) {
+        console.error("Error en la respuesta del backend:", error.response.data);
+        setMessage(`Error: ${error.response.data.detail}`);
+    } else if (error.request) {
+        console.error("No se recibió respuesta del backend:", error.request);
+        setMessage("No se recibió respuesta del servidor.");
+    } else {
+        console.error("Error al configurar la solicitud:", error.message);
+        setMessage("Error en la solicitud.");
+    }
     }
   };
   
