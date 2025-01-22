@@ -65,11 +65,16 @@ def get_client_plan(
 
     # Obtener los planes asignados al cliente
     planes = db.query(NutritionPlan).filter(NutritionPlan.cliente_id == cliente_id).all()
+
+    # Debugging: imprime los datos antes de retornarlos
+    print("Planes encontrados:", planes)
+
     if not planes:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No hay planes de nutrición asignados a este cliente."
         )
 
-    return planes
+   # Asegúrate de retornar un formato que coincida con NutritionPlanResponse
+    return [{"id": plan.id, "descripcion": plan.descripcion, "cliente_id": plan.cliente_id, "entrenador_id": plan.entrenador_id} for plan in planes]
 
