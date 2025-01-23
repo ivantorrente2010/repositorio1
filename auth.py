@@ -34,20 +34,35 @@ def verify_access_token(token: str):
         return None
 
 # Dependencia para proteger rutas
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    payload = verify_access_token(token)
-    if payload is None:
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    try:
+        # Decodificar el token
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="No se pudo validar el token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # Obtener el usuario desde la base de datos
+        user = db.query(User).filter(User.id == user_id).first()
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Usuario no encontrado",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return user
+    except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido o expirado",
+            detail="Token no válido",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-    user = db.query(User).filter(User.id == int(payload["sub"])).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuario no encontrado",
-        )
-    return user
 
 # Router de autenticación
 router = APIRouter(

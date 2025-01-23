@@ -39,6 +39,9 @@ class RoutineUpdate(BaseModel):
 
 class RoutineResponse(RoutineBase):
     id: int
+    nombre: str
+    descripcion: str
+    cliente_id: int
     entrenador_id: int
 
     class Config:

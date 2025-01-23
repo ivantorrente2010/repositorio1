@@ -11,10 +11,15 @@ router = APIRouter(
 )
 
 # Crear una rutina
+
 @router.post("/", response_model=RoutineResponse)
-def create_routine(routine: RoutineCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+def create_routine(
+    routine: RoutineCreate, 
+    db: Session = Depends(get_db), 
+    current_user: dict = Depends(get_current_user)
+    ):
     # Verificar que el usuario sea un entrenador
-    if current_user["tipo_usuario"] != "entrenador":
+    if current_user.tipo_usuario!= "entrenador":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permiso para crear rutinas."
@@ -32,7 +37,7 @@ def create_routine(routine: RoutineCreate, db: Session = Depends(get_db), curren
     nueva_rutina = Routine(
         nombre=routine.nombre,
         descripcion=routine.descripcion,
-        entrenador_id=current_user["id"],
+        entrenador_id=current_user.id,
         cliente_id=routine.cliente_id
     )
     db.add(nueva_rutina)
@@ -48,7 +53,7 @@ def create_routine(routine: RoutineCreate, db: Session = Depends(get_db), curren
 }
 
 # Obtener las rutinas de un cliente
-@router.get("/{cliente_id}", response_model=list[RoutineResponse])
+@router.get("/client/{cliente_id}", response_model=list[RoutineResponse])
 def get_client_routines(cliente_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     # Verificar que el cliente exista
     cliente = db.query(Client).filter(Client.id == cliente_id).first()
@@ -66,7 +71,18 @@ def get_client_routines(cliente_id: int, db: Session = Depends(get_db), current_
         )
 
     rutinas = db.query(Routine).filter(Routine.cliente_id == cliente_id).all()
-    return rutinas
+    
+    # Transformar rutinas en el formato esperado por RoutineResponse
+    return [
+        {
+            "id": rutina.id,
+            "nombre": rutina.nombre,
+            "descripcion": rutina.descripcion,
+            "cliente_id": rutina.cliente_id,
+            "entrenador_id": rutina.entrenador_id,
+        }
+        for rutina in rutinas
+    ]
 
 # Actualizar una rutina
 @router.put("/{rutina_id}", response_model=RoutineResponse)
