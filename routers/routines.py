@@ -38,7 +38,14 @@ def create_routine(routine: RoutineCreate, db: Session = Depends(get_db), curren
     db.add(nueva_rutina)
     db.commit()
     db.refresh(nueva_rutina)
-    return nueva_rutina
+
+    return {
+    "id": nueva_rutina.id,
+    "nombre": nueva_rutina.nombre,
+    "descripcion": nueva_rutina.descripcion,
+    "cliente_id": nueva_rutina.cliente_id,
+    "entrenador_id": nueva_rutina.entrenador_id
+}
 
 # Obtener las rutinas de un cliente
 @router.get("/{cliente_id}", response_model=list[RoutineResponse])
