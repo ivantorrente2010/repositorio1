@@ -34,7 +34,7 @@ const ClientPage = () => {
 
         //Obtener rutinas del cliente
         try {
-          const routinesResponse = await api.get(`/routines/${clienteId}`, { headers });
+          const routinesResponse = await api.get(`/routines/client/${clienteId}`, { headers });
           console.log("Respuesta del backend para rutinas:", routinesResponse.data);
           setRoutines(routinesResponse.data);
         } catch (error) {
