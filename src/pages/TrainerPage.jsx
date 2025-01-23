@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import api from "../services/api";
-import Header from "../components/Header"; // Importa el Header
+import Header from "../components/Header";
 
 const TrainerPage = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState("");
   const [planDescription, setPlanDescription] = useState("");
+  const [routineName, setRoutineName] = useState("");
+  const [routineDescription, setRoutineDescription] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -32,25 +34,18 @@ const TrainerPage = () => {
     fetchClients();
   }, []);
 
-  const handleSubmit = async (e) => {
+  const handlePlanSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      console.log("Token enviado:", token); // Verificar el token almacenado en localStorage
-  
+
       if (!token) {
-        console.error("Token no encontrado en localStorage.");
         setMessage("No se encontró un token. Por favor, inicia sesión.");
         return;
       }
-  
+
       const headers = { Authorization: `Bearer ${token}` };
-  
-      console.log("Datos enviados al backend:", {
-        descripcion: planDescription,
-        cliente_id: selectedClient,
-      }); // Verificar los datos que se envían
-  
+
       // Crear un plan de nutrición para el cliente seleccionado
       const response = await api.post(
         "/nutrition-plans/",
@@ -60,26 +55,50 @@ const TrainerPage = () => {
         },
         { headers }
       );
-  
-      console.log("Respuesta del backend:", response.data); // Verificar la respuesta del backend
+
+      console.log("Plan asignado:", response.data);
       setMessage("Plan de nutrición asignado con éxito.");
       setPlanDescription("");
       setSelectedClient("");
     } catch (error) {
       console.error("Error al asignar el plan de nutrición:", error);
-    if (error.response) {
-        console.error("Error en la respuesta del backend:", error.response.data);
-        setMessage(`Error: ${error.response.data.detail}`);
-    } else if (error.request) {
-        console.error("No se recibió respuesta del backend:", error.request);
-        setMessage("No se recibió respuesta del servidor.");
-    } else {
-        console.error("Error al configurar la solicitud:", error.message);
-        setMessage("Error en la solicitud.");
-    }
+      setMessage(error.response?.data?.detail || "Error al asignar el plan.");
     }
   };
-  
+
+  const handleRoutineSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setMessage("No se encontró un token. Por favor, inicia sesión.");
+        return;
+      }
+
+      const headers = { Authorization: `Bearer ${token}` };
+
+      // Crear una rutina para el cliente seleccionado
+      const response = await api.post(
+        "/routines/",
+        {
+          nombre: routineName,
+          descripcion: routineDescription,
+          cliente_id: selectedClient,
+        },
+        { headers }
+      );
+
+      console.log("Rutina asignada:", response.data);
+      setMessage("Rutina asignada con éxito.");
+      setRoutineName("");
+      setRoutineDescription("");
+      setSelectedClient("");
+    } catch (error) {
+      console.error("Error al asignar la rutina:", error);
+      setMessage(error.response?.data?.detail || "Error al asignar la rutina.");
+    }
+  };
 
   if (loading) {
     return <p>Cargando clientes...</p>;
@@ -87,7 +106,6 @@ const TrainerPage = () => {
 
   return (
     <div>
-      {/* Header con el botón de Logout */}
       <Header />
       <h1>Panel del Entrenador</h1>
       <h2>Mis Clientes</h2>
@@ -106,7 +124,7 @@ const TrainerPage = () => {
 
       {/* Formulario para asignar un plan de nutrición */}
       <h2>Asignar Plan de Nutrición</h2>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handlePlanSubmit}>
         <div>
           <label htmlFor="client">Seleccionar Cliente:</label>
           <select
@@ -124,15 +142,56 @@ const TrainerPage = () => {
           </select>
         </div>
         <div>
-          <label htmlFor="description">Descripción del Plan:</label>
+          <label htmlFor="planDescription">Descripción del Plan:</label>
           <textarea
-            id="description"
+            id="planDescription"
             value={planDescription}
             onChange={(e) => setPlanDescription(e.target.value)}
             required
           />
         </div>
         <button type="submit">Asignar Plan</button>
+      </form>
+
+      {/* Formulario para asignar una rutina */}
+      <h2>Asignar Rutina</h2>
+      <form onSubmit={handleRoutineSubmit}>
+        <div>
+          <label htmlFor="client">Seleccionar Cliente:</label>
+          <select
+            id="client"
+            value={selectedClient}
+            onChange={(e) => setSelectedClient(e.target.value)}
+            required
+          >
+            <option value="">Selecciona un cliente</option>
+            {clients.map((client) => (
+              <option key={client.id} value={client.id}>
+                {client.nombre} (ID: {client.id})
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="routineName">Nombre de la Rutina:</label>
+          <input
+            id="routineName"
+            type="text"
+            value={routineName}
+            onChange={(e) => setRoutineName(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="routineDescription">Descripción de la Rutina:</label>
+          <textarea
+            id="routineDescription"
+            value={routineDescription}
+            onChange={(e) => setRoutineDescription(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit">Asignar Rutina</button>
       </form>
       {message && <p>{message}</p>}
     </div>

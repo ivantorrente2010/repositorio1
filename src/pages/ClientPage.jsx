@@ -31,7 +31,16 @@ const ClientPage = () => {
         } catch (error) {
           console.error("Error en la solicitud de planes de nutrición:", error.response?.data || error);
         }
-  
+
+        //Obtener rutinas del cliente
+        try {
+          const routinesResponse = await api.get(`/routines/${clienteId}`, { headers });
+          console.log("Respuesta del backend para rutinas:", routinesResponse.data);
+          setRoutines(routinesResponse.data);
+        } catch (error) {
+          console.error("Error en la solicitud de rutinas:", error.response?.data || error);
+        }
+        
         setLoading(false);
       } catch (error) {
         console.error("Error al cargar los datos del cliente:", error);
