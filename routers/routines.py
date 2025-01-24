@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Routine, Client, Trainer
+from models import Routine, Client, Trainer, User
 from schemas import RoutineCreate, RoutineUpdate, RoutineResponse
 from auth import get_current_user
 
@@ -53,8 +53,13 @@ def create_routine(
 }
 
 # Obtener las rutinas de un cliente
+
 @router.get("/client/{cliente_id}", response_model=list[RoutineResponse])
-def get_client_routines(cliente_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+def get_client_routines(
+    cliente_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     # Verificar que el cliente exista
     cliente = db.query(Client).filter(Client.id == cliente_id).first()
     if not cliente:
@@ -64,13 +69,29 @@ def get_client_routines(cliente_id: int, db: Session = Depends(get_db), current_
         )
 
     # Solo entrenadores o el propio cliente pueden ver las rutinas
-    if current_user["tipo_usuario"] == "cliente" and current_user["id"] != cliente_id:
+    if current_user.tipo_usuario == "cliente" and current_user.id != cliente_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permiso para ver las rutinas de este cliente."
         )
 
+    # Obtener las rutinas del cliente
     rutinas = db.query(Routine).filter(Routine.cliente_id == cliente_id).all()
+    if not rutinas:
+        return []
+
+    # Devuelve una lista de rutinas formateadas como se espera en el esquema de respuesta
+    return [
+        {
+            "id": rutina.id,
+            "nombre": rutina.nombre,
+            "descripcion": rutina.descripcion,
+            "cliente_id": rutina.cliente_id,
+            "entrenador_id": rutina.entrenador_id,
+        }
+        for rutina in rutinas
+    ]
+
     
     # Transformar rutinas en el formato esperado por RoutineResponse
     return [

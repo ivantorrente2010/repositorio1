@@ -56,6 +56,7 @@ def get_client_plan(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+
     # Verificar que un cliente no acceda a datos de otro cliente
     if current_user.tipo_usuario == "cliente" and current_user.id != cliente_id:
         raise HTTPException(

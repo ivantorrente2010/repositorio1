@@ -50,6 +50,9 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         
         # Obtener el usuario desde la base de datos
         user = db.query(User).filter(User.id == user_id).first()
+
+        print("Usuario autenticado:", user)  # Depuración
+
         if user is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
