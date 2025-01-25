@@ -6,6 +6,7 @@ import AdminPage from "./pages/AdminPage";
 import TrainerPage from "./pages/TrainerPage";
 import ClientPage from "./pages/ClientPage";
 import { useAuth } from "./context/AuthContext"; // Usa el contexto para obtener el rol
+import '../styles/styles.css';
 
 function App() {
     const { role } = useAuth(); // Obtenemos el rol desde el contexto

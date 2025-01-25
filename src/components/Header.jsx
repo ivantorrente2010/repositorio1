@@ -10,7 +10,7 @@ const Header = () => {
 
   return (
     <header style={{ display: "flex", justifyContent: "space-between", padding: "10px", backgroundColor: "#f5f5f5" }}>
-      <h1>Mi Aplicación</h1>
+      <h1>Gimnasio Fitness</h1>
       <button onClick={handleLogout} style={{ padding: "5px 10px", cursor: "pointer" }}>
         Cerrar Sesión
       </button>
