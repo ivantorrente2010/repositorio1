@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
+from typing import Optional
 
 class UserBase(BaseModel):
     nombre: str
@@ -68,8 +69,7 @@ class NutritionPlanResponse(NutritionPlanBase):
 # Esquemas para métricas
 class MetricBase(BaseModel):
     peso: float
-    grasa_corporal: float | None = None
-    rendimiento: str | None = None
+    grasa_corporal: Optional[float] = None
 
 class MetricCreate(MetricBase):
     cliente_id: int
@@ -77,10 +77,12 @@ class MetricCreate(MetricBase):
 class MetricResponse(MetricBase):
     id: int
     cliente_id: int
-    fecha: datetime
+    peso: float
+    grasa_corporal: Optional[float] = None
+    fecha: str
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # Esquema para el login
 class LoginRequest(BaseModel):

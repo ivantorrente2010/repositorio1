@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Metric, Client
+from models import Metric, Client, User
 from schemas import MetricCreate, MetricResponse
 from auth import get_current_user
 from sqlalchemy.sql import func
@@ -13,38 +13,52 @@ router = APIRouter(
 )
 
 # Registrar una nueva métrica
+
 @router.post("/", response_model=MetricResponse)
-def create_metric(metric: MetricCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    # Verificar que el usuario sea un cliente o entrenador
-    if current_user["tipo_usuario"] == "entrenador":
-        cliente = db.query(Client).filter(Client.id == metric.cliente_id).first()
-        if not cliente:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="El cliente no existe."
-            )
-    elif current_user["tipo_usuario"] == "cliente":
-        if current_user["id"] != metric.cliente_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="No tienes permiso para registrar métricas para este cliente."
-            )
-    else:
+def create_metric(
+    metric: MetricCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),  # Cambiado de dict a User
+):
+    #Depurar los datos recibidos 
+    print("Datos recibidos para registrar métrica:", metric.dict())
+
+    # Verificar que el usuario actual sea un entrenador
+    if current_user.tipo_usuario != "entrenador":  # Cambiado a current_user.tipo_usuario
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tienes permiso para registrar métricas."
+            detail="Solo los entrenadores pueden asignar métricas.",
         )
 
+    # Verificar que el cliente exista
+    cliente = db.query(Client).filter(Client.id == metric.cliente_id).first()
+    if not cliente:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="El cliente no existe.",
+        )
+
+    # Crear la métrica
     nueva_metrica = Metric(
+        cliente_id=metric.cliente_id,
         peso=metric.peso,
         grasa_corporal=metric.grasa_corporal,
-        rendimiento=metric.rendimiento,
-        cliente_id=metric.cliente_id
     )
     db.add(nueva_metrica)
     db.commit()
     db.refresh(nueva_metrica)
-    return nueva_metrica
+
+    print("Fecha registrada:", nueva_metrica.fecha)
+
+    return {
+        "id": nueva_metrica.id,
+        "cliente_id": nueva_metrica.cliente_id,
+        "peso": nueva_metrica.peso,
+        "grasa_corporal": nueva_metrica.grasa_corporal,
+        "fecha": nueva_metrica.fecha.isoformat(),  # Asegúrate de que `fecha` esté definido en el modelo Metric
+    }
+
+
 
 # Obtener métricas históricas de un cliente
 @router.get("/{cliente_id}", response_model=list[MetricResponse])

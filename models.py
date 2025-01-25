@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from database import Base
 
 class User(Base):
@@ -65,9 +66,9 @@ class Metric(Base):
     __tablename__ = "metrics"
     
     id = Column(Integer, primary_key=True, index=True)
-    cliente_id = Column(Integer, ForeignKey("clients.id"))
-    peso = Column(Float)
-    grasa_corporal = Column(Float)
-    fecha = Column(Date)
+    cliente_id = Column(Integer, ForeignKey("clients.id"), nullable=False)
+    peso = Column(Float, nullable=False)
+    grasa_corporal = Column(Float, nullable=True)
+    fecha = Column(DateTime, default=func.now())
 
     client = relationship("Client", back_populates="metrics")
