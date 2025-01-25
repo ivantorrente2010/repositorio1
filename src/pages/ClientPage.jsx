@@ -10,59 +10,42 @@ const ClientPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const clienteId = localStorage.getItem("cliente_id");
-        const headers = { Authorization: `Bearer ${token}` };
-  
-        console.log("Token enviado:", token);
-        console.log("Cliente ID:", clienteId);
-  
-        if (!clienteId) {
-          console.error("No se encontró cliente_id en localStorage");
-          return;
-        }
-  
-        // Obtener planes de nutrición
-        try {
-          const nutritionPlansResponse = await api.get(`/nutrition-plans/client/${clienteId}`, { headers });
-          console.log("Respuesta del backend para planes de nutrición:", nutritionPlansResponse.data);
-          setNutritionPlans(nutritionPlansResponse.data);
-        } catch (error) {
-          console.error("Error en la solicitud de planes de nutrición:", error.response?.data || error);
-        }
+      const token = localStorage.getItem("token");
+      const clienteId = localStorage.getItem("cliente_id");
+      const headers = { Authorization: `Bearer ${token}` };
 
-        //Obtener rutinas del cliente
-        try {
-          const routinesResponse = await api.get(`/routines/client/${clienteId}`, { headers });
-          console.log("Respuesta del backend para rutinas:", routinesResponse.data);
-          setRoutines(routinesResponse.data);
-        } catch (error) {
-          console.error("Error en la solicitud de rutinas:", error.response?.data || error);
-        }
-        
-        setLoading(false);
-      } catch (error) {
-        console.error("Error al cargar los datos del cliente:", error);
-        setLoading(false);
+      if (!clienteId) {
+        console.error("No se encontró cliente_id en localStorage");
+        return;
       }
 
-        // Obtener métricas del cliente
-        try {
-          const metricsResponse = await api.get(`/metrics/${clienteId}`, { headers });
-          console.log("Métricas obtenidas del backend:", metricsResponse.data);
-          setMetrics(metricsResponse.data);
-        } catch (error) {
-          console.error("Error en la solicitud de métricas:", error.response?.data || error);
-        }
+      console.log("Token enviado:", token);
+      console.log("Cliente ID obtenido:", clienteId);
 
+      try {
+        // Obtener planes de nutrición
+        const nutritionPlansResponse = await api.get(`/nutrition-plans/client/${clienteId}`, { headers });
+        console.log("Respuesta del backend para planes de nutrición:", nutritionPlansResponse.data);
+        setNutritionPlans(nutritionPlansResponse.data);
+
+        // Obtener rutinas del cliente
+        const routinesResponse = await api.get(`/routines/client/${clienteId}`, { headers });
+        console.log("Respuesta del backend para rutinas:", routinesResponse.data);
+        setRoutines(routinesResponse.data);
+
+        // Obtener métricas del cliente
+        const metricsResponse = await api.get(`/metrics/${clienteId}`, { headers });
+        console.log("Métricas obtenidas del backend:", metricsResponse.data);
+        setMetrics(metricsResponse.data);
+      } catch (error) {
+        console.error("Error al cargar los datos del cliente:", error.response?.data || error);
+      } finally {
+        setLoading(false);
+      }
     };
-  
+
     fetchData();
   }, []);
-  
-
-
 
   if (loading) {
     return <p>Cargando datos...</p>;
@@ -113,16 +96,14 @@ const ClientPage = () => {
                 <th>Fecha</th>
                 <th>Peso</th>
                 <th>Grasa Corporal</th>
-                <th>Rendimiento</th>
               </tr>
             </thead>
             <tbody>
               {metrics.map((metric) => (
                 <tr key={metric.id}>
-                  <td>{new Date(metric.fecha).toLocaleDateString()}</td>
-                  <td>{metric.peso} kg</td>
+                  <td>{metric.fecha ? new Date(metric.fecha).toLocaleDateString() : "N/A"}</td>
+                  <td>{metric.peso || "N/A"} kg</td>
                   <td>{metric.grasa_corporal || "N/A"}%</td>
-                  <td>{metric.rendimiento || "N/A"}</td>
                 </tr>
               ))}
             </tbody>
