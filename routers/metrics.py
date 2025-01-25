@@ -72,13 +72,19 @@ def get_metrics(cliente_id: int, db: Session = Depends(get_db), current_user: di
         )
 
     # Verificar permisos
-    if current_user["tipo_usuario"] == "cliente" and current_user["id"] != cliente_id:
+    if current_user.tipo_usuario == "cliente" and current_user.id != cliente_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permiso para ver las métricas de este cliente."
         )
 
-    metrics = db.query(Metric).filter(Metric.cliente_id == cliente_id).order_by(Metric.fecha.desc()).all()
+    # Consultar métricas
+    metrics = db.query(Metric).filter(Metric.cliente_id == cliente_id).all()
+
+     # Convertir la fecha a cadena antes de devolver
+    for metric in metrics:
+        metric.fecha = metric.fecha.strftime("%Y-%m-%d")  # Formato deseado
+
     return metrics
 
     # Obtener progreso de un cliente
