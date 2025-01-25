@@ -46,6 +46,16 @@ const ClientPage = () => {
         console.error("Error al cargar los datos del cliente:", error);
         setLoading(false);
       }
+
+        // Obtener métricas del cliente
+        try {
+          const metricsResponse = await api.get(`/metrics/${clienteId}`, { headers });
+          console.log("Métricas obtenidas del backend:", metricsResponse.data);
+          setMetrics(metricsResponse.data);
+        } catch (error) {
+          console.error("Error en la solicitud de métricas:", error.response?.data || error);
+        }
+
     };
   
     fetchData();
@@ -103,6 +113,7 @@ const ClientPage = () => {
                 <th>Fecha</th>
                 <th>Peso</th>
                 <th>Grasa Corporal</th>
+                <th>Rendimiento</th>
               </tr>
             </thead>
             <tbody>
@@ -111,6 +122,7 @@ const ClientPage = () => {
                   <td>{new Date(metric.fecha).toLocaleDateString()}</td>
                   <td>{metric.peso} kg</td>
                   <td>{metric.grasa_corporal || "N/A"}%</td>
+                  <td>{metric.rendimiento || "N/A"}</td>
                 </tr>
               ))}
             </tbody>

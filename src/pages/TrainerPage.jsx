@@ -9,6 +9,8 @@ const TrainerPage = () => {
   const [planDescription, setPlanDescription] = useState("");
   const [routineName, setRoutineName] = useState("");
   const [routineDescription, setRoutineDescription] = useState("");
+  const [metricWeight, setMetricWeight] = useState("");
+  const [metricBodyFat, setMetricBodyFat] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -99,6 +101,44 @@ const TrainerPage = () => {
       setMessage(error.response?.data?.detail || "Error al asignar la rutina.");
     }
   };
+
+  const handleMetricSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+  
+      if (!token) {
+        setMessage("No se encontró un token. Por favor, inicia sesión.");
+        return;
+      }
+  
+      const headers = { Authorization: `Bearer ${token}` };
+  
+      const response = await api.post(
+        "/metrics/",
+        {
+          peso: parseFloat(metricWeight),
+          grasa_corporal: metricBodyFat ? parseFloat(metricBodyFat) : null,
+          cliente_id: parseInt(selectedClient),
+        },
+        { headers }
+      );
+  
+      console.log("Métrica asignada:", response.data);
+      setMessage("Métrica registrada con éxito.");
+      setMetricWeight("");
+      setMetricBodyFat("");
+      setSelectedClient("");
+    } catch (error) {
+      console.error("Error al registrar la métrica:", error);
+      setMessage(
+        typeof error.response?.data === "string"
+    ? error.response.data
+    : "Error al registrar la métrica."
+    );
+    }
+  };
+  
 
   if (loading) {
     return <p>Cargando clientes...</p>;
@@ -193,6 +233,50 @@ const TrainerPage = () => {
         </div>
         <button type="submit">Asignar Rutina</button>
       </form>
+
+      {/* Formulario para asignar una metrica */}
+      
+      <h2>Registrar Métricas</h2>
+      <form onSubmit={handleMetricSubmit}>
+        <div>
+          <label htmlFor="client">Seleccionar Cliente:</label>
+          <select
+            id="client"
+            value={selectedClient}
+            onChange={(e) => setSelectedClient(e.target.value)}
+            required
+          >
+            <option value="">Selecciona un cliente</option>
+            {clients.map((client) => (
+              <option key={client.id} value={client.id}>
+                {client.nombre} (ID: {client.id})
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="metricWeight">Peso (kg):</label>
+          <input
+            id="metricWeight"
+            type="number"
+            value={metricWeight}
+            onChange={(e) => setMetricWeight(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="metricBodyFat">Grasa Corporal (%):</label>
+          <input
+            id="metricBodyFat"
+            type="number"
+            value={metricBodyFat}
+            onChange={(e) => setMetricBodyFat(e.target.value)}
+          />
+        </div>
+        ¡
+        <button type="submit">Registrar Métricas</button>
+      </form>
+      
       {message && <p>{message}</p>}
     </div>
   );
