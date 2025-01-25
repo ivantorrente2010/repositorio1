@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import users, routines, nutrition_plans, metrics
 from auth import router as auth_router
 from database import Base, engine
+from mangum import Mangum
+
 
 # Cargar modelos
 Base.metadata.create_all(bind=engine)
@@ -29,9 +31,10 @@ app.include_router(metrics.router)  # Rutas de métricas
 # Ruta de prueba para verificar que el backend funciona correctamente
 @app.get("/")
 def read_root():
-    return {"message": "¡API funcionando correctamente!"}
+    return {"message": "¡Hola desde Vercel!"}
 
 
-
+# Adaptador para Vercel
+handler = Mangum(app)
 
 
